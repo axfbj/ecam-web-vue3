@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ecam web page</title>
+    <style>
+      .first-loading-wrp {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loading {
+        width: 34px;
+        height: 34px;
+        border: 2px solid #5095ce;
+        border-top-color: transparent;
+        border-radius: 100%;
+
+        animation: circle infinite 0.75s linear;
+      }
+
+      @keyframes circle {
+        0% {
+          transform: rotate(0);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="first-loading-wrp">
+        <div class="loading"></div>
+        <div style="font-size: 12px; margin-top: 10px">加载中...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
