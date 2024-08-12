@@ -1,7 +1,11 @@
 <template>
   <div class="fieldset-replace h-full">
     <div class="nomarl-title"> 阻抗表 </div>
-    <vxe-grid v-bind="gridOptions" />
+    <vxe-grid v-bind="gridOptions">
+      <template #input-flag>
+        <el-input />
+      </template>
+    </vxe-grid>
   </div>
 </template>
 
@@ -36,18 +40,18 @@
       {
         title: '客户原稿设计',
         children: [
-          { field: 'name', title: '需求阻抗(ohm)', width: 110 },
-          { field: 'sex', title: '阻抗层', editRender: sexEditRender },
-          { field: 'param2', title: '阻抗模式', editRender: sexEditRender },
-          { field: 'param1', title: '上参考层' },
-          { field: 'param1', title: '下参考层' },
-          { field: 'param1', title: '线宽' },
-          { field: 'param1', title: '线距' },
-          { field: 'param1', title: '到铜距离' },
+          { field: 'requiredImpedanceValue', title: '需求阻抗(ohm)', width: 110 },
+          { field: 'signalPlane', title: '阻抗层', editRender: sexEditRender },
+          { field: 'impedanceType', title: '阻抗模式', editRender: sexEditRender },
+          { field: 'firstReferenceLayer', title: '上参考层' },
+          { field: 'secondReferenceLayer', title: '下参考层' },
+          { field: 'lineWidth', title: '线宽' },
+          { field: 'lineSpacing', title: '线距' },
+          { field: 'spurCopper', title: '到铜距离' },
         ],
       },
       {
-        title: '客户原稿设计',
+        title: '阻抗线调整',
         children: [
           { field: 'param1', title: '线宽' },
           { field: 'param1', title: '线距' },
@@ -57,8 +61,8 @@
       },
     ],
     data: [
-      { id: 10001, name: 'Test1', role: 'Develop', sex: 'Man', age: 28, address: 'test abc' },
-      { id: 10002, name: 'Test2', role: 'Test', sex: 'Women', age: 22, address: 'Guangzhou' },
+      // { id: 10001, name: 'Test1', role: 'Develop', sex: 'Man', age: 28, address: 'test abc' },
+      // { id: 10002, name: 'Test2', role: 'Test', sex: 'Women', age: 22, address: 'Guangzhou' },
     ],
   })
 

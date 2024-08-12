@@ -144,6 +144,11 @@
   }
 
   const calcPPLaminationThickness = (_tData) => {
+    // 找到最上面 芯板版的索引
+    const fristCoreIndex = _.findIndex(_tData, (_item) => _item.type === '1')
+    // 找到最后面 芯板的索引
+    const lastCoreIndex = _.findLastIndex(_tData, (_item) => _item.type === '1')
+
     return _tData.map((item, index) => {
       // pp压合厚度计算
       if (item.type === '3') {
@@ -151,26 +156,8 @@
         const nextIndex = index + 1
         let prvItem = null
         let nextItem = null
-
         item.lamination_thickness = item.thickness
-        if (prvIndex > -1) {
-          prvItem = _tData[prvIndex]
-          if (prvItem.type === '1') {
-            var rate1 = Number(prvItem.residual_copper_rate_b) / 100
-            // console.log('rate1', rate1)
-            // console.log('item.thickness', item.thickness)
-            // console.log('prvItem.residual_copper_rate_number_b', prvItem.residual_copper_rate_number_b)
-
-            item.lamination_thickness = Number(item.lamination_thickness) - (1 - rate1) * Number(prvItem.residual_copper_rate_number_b)
-            item.lamination_thickness = Number(item.lamination_thickness.toFixed(4))
-          } else if (prvItem.type === '4') {
-            var rate2 = Number(prvItem.residual_copper_rate) / 100
-            item.lamination_thickness = Number(item.lamination_thickness) - (1 - rate2) * Number(prvItem.residual_copper_rate_number)
-            item.lamination_thickness = Number(item.lamination_thickness.toFixed(4))
-          }
-        }
-
-        if (nextIndex < _tData.length) {
+        if ((fristCoreIndex > -1 && index < fristCoreIndex) || (index > fristCoreIndex && index < lastCoreIndex)) {
           nextItem = _tData[nextIndex]
           if (nextItem.type === '1') {
             var rate3 = Number(nextItem.residual_copper_rate_t) / 100
@@ -179,6 +166,19 @@
           } else if (nextItem.type === '4') {
             var rate4 = Number(nextItem.residual_copper_rate) / 100
             item.lamination_thickness = Number(item.lamination_thickness) - (1 - rate4) * Number(nextItem.residual_copper_rate_number)
+            item.lamination_thickness = Number(item.lamination_thickness.toFixed(4))
+          }
+        }
+
+        if ((lastCoreIndex > -1 && index > lastCoreIndex) || (index > fristCoreIndex && index < lastCoreIndex)) {
+          prvItem = _tData[prvIndex]
+          if (prvItem.type === '1') {
+            var rate1 = Number(prvItem.residual_copper_rate_b) / 100
+            item.lamination_thickness = Number(item.lamination_thickness) - (1 - rate1) * Number(prvItem.residual_copper_rate_number_b)
+            item.lamination_thickness = Number(item.lamination_thickness.toFixed(4))
+          } else if (prvItem.type === '4') {
+            var rate2 = Number(prvItem.residual_copper_rate) / 100
+            item.lamination_thickness = Number(item.lamination_thickness) - (1 - rate2) * Number(prvItem.residual_copper_rate_number)
             item.lamination_thickness = Number(item.lamination_thickness.toFixed(4))
           }
         }
