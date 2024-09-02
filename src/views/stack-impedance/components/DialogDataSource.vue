@@ -74,7 +74,7 @@
   )
   const copperFoilDataList = reactive(
     (function () {
-      return copperFoilData.map((item) => ({ ...item, label: `${item['铜类型']} ${item['厚度_OZ']}oz` }))
+      return copperFoilData.map((item) => ({ ...item, label: `${item['铜类型']}\u00A0\u00A0\u00A0${item['厚度_OZ']}oz` }))
     })()
   )
 
@@ -91,8 +91,18 @@
   const onConfirm = () => {
     const dataItem = (() => {
       const item = {
-        type: '',
-        specification: '',
+        label: '',
+        materialType: '',
+        materialSpecifications: '',
+        materialThickness: '',
+        materialFinalThickness: '',
+        residual_copper_rate_flag: '',
+        residual_copper_rate_t: '',
+        residual_copper_rate_b: '',
+        residual_copper_rate_number_t: '',
+        residual_copper_rate_number_b: '',
+        residual_copper_rate: '',
+        residual_copper_rate_number: '',
       }
       let tDataItem = null
       if (activeName.value === 'tab1') {
@@ -107,10 +117,12 @@
 
         // 规格全部写含铜 ，理论厚度也是含铜的厚度
         tDataItem = tableDataSource1Ref.value.getCurrentRowData()
-        item.type = '1'
-        item.specification = '含铜'
-        item.thickness = tDataItem['含铜厚度']
+        item.materialType = 'core'
+        item.materialSpecifications = '含铜'
+        item.materialThickness = tDataItem['含铜厚度']
         // item.residual_copper_rate = `${tDataItem['底层铜箔']}/${tDataItem['顶层铜箔']}`
+        item.residual_copper_rate_flag = `${tDataItem['顶层铜箔']}/${tDataItem['底层铜箔']}`
+
         item.residual_copper_rate_t = 70
         item.residual_copper_rate_b = 70
 
@@ -118,7 +130,7 @@
         item.residual_copper_rate_number_b = copperFoilThickness[`p_${tDataItem['底层铜箔']}`]['厚度_mm']
 
         item.residual_copper_rate = `70/70`
-        item.lamination_thickness = tDataItem['含铜厚度']
+        item.materialFinalThickness = tDataItem['含铜厚度']
       }
 
       if (activeName.value === 'tab2') {
@@ -127,11 +139,11 @@
         // 厚度: 0.1
         // 序号: 1
         tDataItem = tableDataSource2Ref.value.getCurrentRowData()
-        item.type = '2'
-        item.specification = '光板'
-        item.thickness = tDataItem['光板厚度']
+        item.materialType = 'bare_core'
+        item.materialSpecifications = '光板'
+        item.materialThickness = tDataItem['光板厚度']
         item.residual_copper_rate = '-'
-        item.lamination_thickness = tDataItem['光板厚度']
+        item.materialFinalThickness = tDataItem['光板厚度']
       }
 
       if (activeName.value === 'tab3') {
@@ -140,12 +152,12 @@
         // 厚度: 0.114
         // 序号: 3
         tDataItem = tableDataSource3Ref.value.getCurrentRowData()
-        item.type = '3'
-        item.specification = tDataItem['PP型号']
-        item.thickness = tDataItem['厚度']
+        item.materialType = 'Prepreg'
+        item.materialSpecifications = tDataItem['PP型号']
+        item.materialThickness = tDataItem['厚度']
         item.residual_copper_rate = '-'
         // 计算改变
-        item.lamination_thickness = tDataItem['厚度']
+        item.materialFinalThickness = tDataItem['厚度']
       }
 
       if (activeName.value === 'tab4') {
@@ -157,15 +169,18 @@
         // 铜类型: 0.33
 
         tDataItem = tableDataSource4Ref.value.getCurrentRowData()
-        item.type = '4'
-        item.specification = '铜箔'
-        item.thickness = `${tDataItem['厚度_mm']}`
+        item.materialType = 'Copper'
+        item.materialSpecifications = '铜箔'
+        item.materialThickness = `${tDataItem['厚度_mm']}`
 
-        item.residual_copper_rate_number = copperFoilThickness[`p_${tDataItem['厚度_OZ']}`]['厚度_mm']
-        item.residual_copper_rate = 70
-        item.lamination_thickness = `${tDataItem['厚度_mm']}`
+        item.residual_copper_rate_flag = tDataItem['厚度_OZ']
+
+        item.residual_copper_rate_number = String(copperFoilThickness[`p_${tDataItem['厚度_OZ']}`]['厚度_mm'])
+        item.residual_copper_rate = '70'
+        item.materialFinalThickness = `${tDataItem['厚度_mm']}`
       }
-      console.log('tDataItem', item)
+      item.label = tDataItem.label
+      console.log('addItem', item)
 
       return item
     })()

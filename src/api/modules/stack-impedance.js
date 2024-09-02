@@ -19,7 +19,7 @@ export default {
    * @returns {Promise}
    */
   stackEcamList(data) {
-    return http.post(' /emake/queryEcamCalleniaInfo', data)
+    return http.post('/emake/queryEcamCalleniaInfo', data)
   },
 
   /**

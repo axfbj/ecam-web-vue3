@@ -1,25 +1,25 @@
 <template>
   <div>
-    <div v-if="type === '1'" class="obj-rect-1">
+    <div v-if="materialType === 'core'" class="obj-rect-1">
       <div class="type1-rect-1"></div>
       <div class="type1-rect-2">{{ text }}</div>
       <div class="type1-rect-3"></div>
     </div>
-    <div v-else-if="type === '2'" class="obj-rect-2">
+    <div v-else-if="materialType === 'bare_core'" class="obj-rect-2">
       <div>{{ text }}</div>
     </div>
-    <div v-else-if="type === '3'" class="obj-rect-3">
-      <div>{{ text }}</div>
+    <div v-else-if="materialType === 'Prepreg'" class="obj-rect-3">
+      <div></div>
     </div>
-    <div v-else-if="type === '4'" class="obj-rect-4">
-      <div>{{ text }}</div>
+    <div v-else-if="materialType === 'Copper'" class="obj-rect-4">
+      <div></div>
     </div>
   </div>
 </template>
 
 <script setup>
   defineProps({
-    type: {
+    materialType: {
       type: String,
       default: '1',
     },
@@ -69,6 +69,7 @@
     div {
       height: $mHeight * 5;
       background-color: $color-2;
+      @include flex-text-center();
     }
   }
   .obj-rect-3 {

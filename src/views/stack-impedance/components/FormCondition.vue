@@ -4,35 +4,35 @@
       <div class="flex justify-between">
         <div>
           <el-form-item label-width="60px" label="板子层数:" label-position="right">
-            <el-input-number v-model.number="numberValidateForm.layer" :style="formInputWidth" :min="0" :controls="false" />
+            <el-input v-model.number="numberValidateForm.layer" type="number" :style="formInputWidth" @input="onInputLayer" />
           </el-form-item>
           <el-form-item label-width="40px" label="板厚:" label-position="right">
-            <el-select v-model="numberValidateForm.thickness" :style="formInputWidth" placeholder="">
+            <el-select v-model="numberValidateForm.thickness" :style="formInputWidth" placeholder="" @change="onInputLayer">
               <el-option v-for="item in thicknessOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
           <el-form-item label-width="60px" label="内层铜厚:" label-position="right">
-            <el-select v-model="numberValidateForm.innerLayerCopperThickness" :style="formInputWidth" placeholder="">
+            <el-select v-model="numberValidateForm.innerLayerCopperThickness" :style="formInputWidth" placeholder="" @change="onInputLayer">
               <el-option v-for="item in innerLayerCopperThicknessOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
           <el-form-item label-width="60px" label="结构方案:" label-position="right">
-            <el-select v-model="numberValidateForm.structuralPlan" :style="formInputWidth" placeholder="">
+            <el-select v-model="numberValidateForm.structuralPlan" :style="formInputWidth" placeholder="" @change="onInputLayer">
               <el-option v-for="item in structuralPlanOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="submitForm(formRef)">加载方案</el-button>
-            <el-button @click="resetForm(formRef)">保存叠构抗阻</el-button>
+            <el-button type="primary" @click="submitForm(formRef)">加载叠构抗阻</el-button>
+            <el-button @click="saveForm(formRef)">保存叠构抗阻</el-button>
           </el-form-item>
         </div>
-        <div>
+        <!-- <div>
           <el-form-item label-width="60px" label="单位:" label-position="right">
             <el-select v-model="numberValidateForm.unit" :style="formInputWidth" placeholder="">
               <el-option v-for="item in unitOptions" :key="item.value" :label="item.label" :value="item.value" />
             </el-select>
           </el-form-item>
-        </div>
+        </div> -->
       </div>
     </el-form>
     <!-- {{ options }} -->
@@ -40,68 +40,81 @@
 </template>
 
 <script setup>
-import { computed,reactive } from 'vue'
+  import { computed, ref } from 'vue'
+
+  const emit = defineEmits(['input-layer', 'loading-scheme', 'save-scheme'])
 
   const formInputWidth = { width: '100px' }
 
-  // const formRef = ref(null)
-
+  const formRef = ref(null)
 
   const thicknessOptions = computed(() => {
-    const items = [0.6,0.8,1.0,1.2,1.6,2.0,2.5]
-    const options = items.map(item => {
-      return { value: item, label: item }    
+    const items = [0.6, 0.8, 1.0, 1.2, 1.6, 2.0, 2.5]
+    const options = items.map((item) => {
+      return { value: item, label: item }
     })
     return options
   })
 
   const innerLayerCopperThicknessOptions = computed(() => {
-    const items = ['0.5oz','1oz']
-    const options = items.map(item => {
-      return { value: item, label: item }    
+    const items = ['0.5oz', '1oz']
+    const options = items.map((item) => {
+      return { value: item, label: item }
     })
     return options
   })
 
   const structuralPlanOptions = computed(() => {
-    const items = ['A','B']
-    const options = items.map(item => {
-      return { value: item, label: item }    
+    const items = ['A', 'B']
+    const options = items.map((item) => {
+      return { value: item, label: item }
     })
     return options
   })
-  const unitOptions = computed(() => {
-    const items = ['mil','mm']
-    const options = items.map(item => {
-      return { value: item, label: item }    
-    })
-    return options
+  // const unitOptions = computed(() => {
+  //   const items = ['mil', 'mm']
+  //   const options = items.map((item) => {
+  //     return { value: item, label: item }
+  //   })
+  //   return options
+  // })
+  const numberValidateForm = defineModel({
+    type: Object,
+    default: {
+      layer: null,
+      thickness: '',
+      innerLayerCopperThickness: '',
+      structuralPlan: '',
+    },
   })
-
-  const numberValidateForm = reactive({
-    layer: null,
-    thickness: '',
-    innerLayerCopperThickness:'',
-    structuralPlan: ''
-  })
+  // const numberValidateForm = reactive({
+  //   layer: null,
+  //   thickness: '',
+  //   innerLayerCopperThickness: '',
+  //   structuralPlan: '',
+  // })
 
   const submitForm = (formEl) => {
     if (!formEl) return
     formEl.validate((valid) => {
       if (valid) {
-        console.log('submit!')
+        // console.log('submit!')
+        emit('loading-scheme')
       } else {
         console.log('error submit!')
       }
     })
   }
 
-  const resetForm = (formEl) => {
-    if (!formEl) return
-    formEl.resetFields()
+  const onInputLayer = () => {
+    emit('input-layer')
   }
 
-
+  const saveForm = (formEl) => {
+    if (!formEl) return
+    // formEl.resetFields()
+    emit('save-scheme')
+  }
 </script>
 
 <style lang="scss" scoped>

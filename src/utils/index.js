@@ -19,3 +19,13 @@ export function parseURLParams(url) {
 
   return paramsObject
 }
+
+export function isJSON(str) {
+  try {
+    JSON.parse(str)
+    return true
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+}

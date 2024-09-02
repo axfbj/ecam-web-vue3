@@ -16,9 +16,8 @@ import VxeTable from 'vxe-table'
 import App from './App.vue'
 import { callCppFunction } from './utils/loadSparams'
 // 创建 Pinia 实例
-;(async () => {
-  await callCppFunction()
 
+callCppFunction(() => {
   const app = createApp(App)
 
   for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -28,4 +27,4 @@ import { callCppFunction } from './utils/loadSparams'
   app.use(VxeUI).use(VxeTable).use(ElementPlus)
 
   app.mount('#app')
-})()
+})
