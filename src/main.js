@@ -1,10 +1,10 @@
 import 'normalize.css'
-import './style.css'
-import './scss/global.scss'
+import '@/style.css'
+import '@/scss/global.scss'
 import 'vxe-table/lib/style.css'
 import 'element-plus/dist/index.css'
 import 'vxe-pc-ui/lib/style.css'
-import './utils/qwebchannel.js'
+import '@/utils/qwebchannel.js'
 
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import ElementPlus from 'element-plus'
@@ -13,8 +13,9 @@ import { createApp } from 'vue'
 import VxeUI from 'vxe-pc-ui'
 import VxeTable from 'vxe-table'
 
+import { callCppFunction } from '@/utils/loadSparams.js'
+
 import App from './App.vue'
-import { callCppFunction } from './utils/loadSparams'
 // 创建 Pinia 实例
 
 callCppFunction(() => {

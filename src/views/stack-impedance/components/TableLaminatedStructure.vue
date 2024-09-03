@@ -429,6 +429,7 @@
   // }
 
   const onSaveLaminatedStructure = async () => {
+    const stackImpedanceJsonPath = 'localStorageFiles/stackImpedance.json'
     const _tableData = _.cloneDeep(tableData.value).map((item, index) => {
       return {
         ..._.cloneDeep(emptyRowData),
@@ -443,7 +444,7 @@
       }
     })
     const laminatedStructureTmp = await (async () => {
-      if (window.qt) return await readFile()
+      if (window.qt) return await readFile(stackImpedanceJsonPath)
       else return JSON.parse(localStorage.getItem('laminatedStructureTmp')) || {}
     })()
     if (!_.isObject(laminatedStructureTmp[`layer_${props.layer}`])) laminatedStructureTmp[`layer_${props.layer}`] = {}
@@ -456,15 +457,8 @@
       }
     }
 
-    // else {
-    //   delete laminatedStructureTmp[`layer_${props.layer}`][`plan_${props.structuralPlan}_p1_${props.thickness}_p2${props.innerLayerCopperThickness}`]
-    // }
-
-    // if (Object.keys(laminatedStructureTmp[`layer_${props.layer}`]).length === 0) delete laminatedStructureTmp[`layer_${props.layer}`]
-
     if (window.qt) {
-      // window.bridge.saveFile()
-      await saveFile(laminatedStructureTmp)
+      await saveFile(laminatedStructureTmp, stackImpedanceJsonPath)
     } else {
       localStorage.setItem('laminatedStructureTmp', JSON.stringify(laminatedStructureTmp))
     }
@@ -473,8 +467,9 @@
   }
 
   const onDeletePlan = async () => {
+    const stackImpedanceJsonPath = 'localStorageFiles/stackImpedance.json'
     const laminatedStructureTmp = await (async () => {
-      if (window.qt) return await readFile()
+      if (window.qt) return await readFile(stackImpedanceJsonPath)
       else return JSON.parse(localStorage.getItem('laminatedStructureTmp')) || {}
     })()
     if (_.isObject(laminatedStructureTmp[`layer_${props.layer}`])) {
@@ -484,8 +479,7 @@
     if (Object.keys(laminatedStructureTmp[`layer_${props.layer}`]).length === 0) delete laminatedStructureTmp[`layer_${props.layer}`]
 
     if (window.qt) {
-      // window.bridge.saveFile()
-      await saveFile(laminatedStructureTmp)
+      await saveFile(laminatedStructureTmp, stackImpedanceJsonPath)
     } else {
       localStorage.setItem('laminatedStructureTmp', JSON.stringify(laminatedStructureTmp))
     }

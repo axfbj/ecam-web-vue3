@@ -27,8 +27,8 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
-    emptyOutDir: true,
+    outDir: 'D:/code/QT_Code/qmlDemo V2/qmlDemo/bin/X64/Release',
+    emptyOutDir: false,
     sourcemap: false,
     rollupOptions: {
       input: {

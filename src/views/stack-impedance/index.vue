@@ -52,7 +52,7 @@
 
   const onInputLayer = async () => {
     const laminatedStructureTmp = await (async () => {
-      if (window.qt) return await readFile()
+      if (window.qt) return await readFile('localStorageFiles/stackImpedance.json')
       else return JSON.parse(localStorage.getItem('laminatedStructureTmp')) || {}
     })()
 
