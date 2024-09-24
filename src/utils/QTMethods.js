@@ -1,5 +1,7 @@
 // import { isJSON } from '@/utils'
 
+import { isJSON } from '.'
+
 export async function getAppDir() {
   return await window.bridge.getAppDir()
 }
@@ -52,4 +54,34 @@ export function uint8ArrayToBase64(uint8Array) {
     binary += String.fromCharCode(uint8Array[i])
   }
   return btoa(binary) // 使用 btoa 将二进制数据编码为 Base64 字符串
+}
+/**
+ * 用于验证是否是线路层
+ * @param {object} pCell
+ * @returns
+ */
+export function checkCellLayer(pCell) {
+  if (pCell.layerSort === 'BOARD' && (pCell.layerType === 'SIGNAL' || pCell.layerType === 'POWER_GROUND' || pCell.layerType === 'MIXED')) {
+    // 执行相关操作
+    return true
+  }
+  return false
+}
+
+export async function layerCountNumber() {
+  const matrixDataStr = await window.bridge.getMatrix()
+  let layersData = []
+  if (isJSON(matrixDataStr)) {
+    const matrixData = JSON.parse(matrixDataStr)
+    layersData = Object.prototype.hasOwnProperty.call(matrixData, 'Layers') ? matrixData['Layers'] : []
+  } else {
+    layersData = []
+  }
+
+  let layerCount = 0
+  layersData.forEach((pCell) => {
+    if (checkCellLayer(pCell)) layerCount += 1
+  })
+
+  return layerCount
 }
