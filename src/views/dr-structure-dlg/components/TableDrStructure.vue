@@ -3,6 +3,7 @@
     <div style="padding: 5px">
       <el-button type="primary" size="small" @click="handleAdd">添加</el-button>
       总层数：{{ layerCount }} 顶-底：{{ topLayerNumber }}-{{ bottomLayerNumber }}
+      <!-- <el-button type="primary" size="small" @click="onToggleLaserHole">激光孔统计</el-button> -->
     </div>
     <!-- <el-button type="primary" @click="a">a</el-button> -->
 
@@ -37,15 +38,21 @@
         </template>
       </vxe-grid>
     </div>
+    <!-- <TableLaserHole /> -->
   </div>
 </template>
 
 <script setup>
+  import { ElMessage } from 'element-plus'
   import _ from 'lodash'
   import { nextTick, onMounted, reactive, ref } from 'vue'
 
+  import $DrStructureDlg from '@/api/modules/dr-structure-dlg'
   // import { isJSON } from '@/utils'
   import { layerCountNumber } from '@/utils/QTMethods.js'
+  // import TableLaserHole from '@/views/dr-structure-dlg/components/TableLaserHole.vue'
+
+  const sParams = window._globalServerParams
 
   const vxeGridRef = ref()
   const dataList = ref([])
@@ -54,14 +61,16 @@
 
   const typeList = [
     { value: '通孔', label: '通孔' },
-    { value: '盲孔', label: '机械盲孔' },
-    { value: '埋孔', label: '机械埋孔' },
+    { value: '机械盲孔', label: '机械盲孔' },
+    { value: '机械埋孔', label: '机械埋孔' },
     { value: '激光孔', label: '激光孔' },
     { value: '背钻孔', label: '背钻孔' },
     { value: '控深孔', label: '控深孔' },
   ]
 
+  const loading = ref(false)
   const gridOptions = reactive({
+    loading: loading,
     size: 'mini',
     border: true,
     height: '100%',
@@ -88,7 +97,6 @@
   }
 
   const handleDel = (rowIndex) => {
-    console.log(rowIndex)
     tableData.value?.splice(rowIndex, 1)
     vxeGridRef.value.reloadData([])
     nextTick(() => {
@@ -108,6 +116,10 @@
     tableData.value.push(newItem)
   }
 
+  // const onToggleLaserHole = () => {
+  //   console.log('onToggleLaserHole')
+  // }
+
   // const onClose = async () => {
   //   const p = await window.bridge.getWindowParam('drTructureDlg')
   //   console.log(p)
@@ -121,7 +133,126 @@
   const drlInfoex_qt = ref([])
   const th_slot_count_qt = ref(0)
 
-  onMounted(async () => {
+  function saveDataAddGroupSerino(originalData, typeFiled) {
+    // const data = [{ type: 'A' }, { type: 'B' }, { type: 'A' }, { type: 'C' }, { type: 'B' }]
+
+    const indexedData = originalData.map((item, index) => ({ ...item, originalIndex: index }))
+
+    // 按 type 分组
+    const groupedData = _.groupBy(indexedData, typeFiled)
+
+    // 遍历每个组，添加递增的 serino
+    let result = _.flatMap(groupedData, (items) => {
+      return items.map((item, index) => {
+        return { ...item, serino: index + 1 }
+      })
+    })
+
+    // 根据 originalIndex 还原顺序
+    result = _.sortBy(result, 'originalIndex')
+
+    // 移除原始索引字段
+    result = result.map((item) => {
+      delete item.originalIndex
+      return item
+    })
+
+    return result
+  }
+
+  async function getDrillDataList() {
+    const res = await $DrStructureDlg.getDrillDataList({ fileId: sParams.fileid, tokenId: sParams.tokenid })
+    if (res.code === 1) {
+      if (res.data?.length > 0) {
+        const listO = res.data.map((item) => {
+          return {
+            sumSerino: item['sumSerino'],
+            id: item['id'],
+            startNum: item['startLayer'],
+            endNum: item['endLayer'],
+            type: item['drillType'],
+            count: item['holeNumber'],
+            minFinishsize: item['minimumAperture'],
+            minDrillsize: item['minimumDrillDiameter'],
+            partNumber: item['drillName'],
+          }
+        })
+        // 使用 orderBy 排序
+        const list = _.orderBy(listO, [(item) => (item.sumSerino !== undefined ? item.sumSerino : null)], ['asc'])
+        return list
+      }
+    }
+    return []
+  }
+
+  async function writeDrillData() {
+    const delData = _.map(
+      _.filter(dataList.value, (item) => item.id),
+      (item) => ({ flag: 2, id: item.id })
+    )
+    const saveDataO = _.map(tableData.value, (item) => {
+      return {
+        flag: 0,
+        startLayer: item['startNum'],
+        endLayer: item['endNum'],
+        drillType: item['type'],
+        holeNumber: item['count'],
+        minimumAperture: item['minFinishsize'],
+        minimumDrillDiameter: item['minDrillsize'],
+        drillName: item['partNumber'],
+      }
+    })
+
+    /**
+     * 通孔只有：1个
+       控深孔：2个
+       背钻孔：2个
+       盲孔：各8个
+       埋孔: 8个
+       激光孔：16个
+       做限制
+     */
+
+    const countTotal1 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('通孔')))
+    const countTotal2 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('控深孔')))
+    const countTotal3 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('背钻孔')))
+    const countTotal4 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('盲孔')))
+    const countTotal5 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('埋孔')))
+    const countTotal6 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('激光孔')))
+
+    let msg = ''
+    if (countTotal1 > 1) msg += '通孔最多只能有一个;<br/>'
+    if (countTotal2 > 2) msg += '控深孔最多只能有两个;<br/>'
+    if (countTotal3 > 2) msg += '背钻孔最多只能有两个;<br/>'
+    if (countTotal4 > 8) msg += '盲孔最多只能有8个;<br/>'
+    if (countTotal5 > 8) msg += '埋孔最多只能有8个;<br/>'
+    if (countTotal6 > 16) msg += '激光孔最多只能有16个;<br/>'
+    if (msg) {
+      ElMessage({
+        type: 'error',
+        dangerouslyUseHTMLString: true,
+        message: msg,
+      })
+      return msg
+    }
+    // 加上总序号 sumSerino
+    const saveData = _.map(saveDataAddGroupSerino(saveDataO, 'drillType'), (item, index) => ({ ...item, sumSerino: index + 1 }))
+
+    const params = { fileId: sParams.fileid, tokenId: sParams.tokenid, data: [...delData, ...saveData] }
+
+    console.log('params', params)
+
+    if (window.qt) {
+      const res = await $DrStructureDlg.writeDrillData(params)
+      if (res.code === 1) {
+        ElMessage.success('保存成功')
+      } else {
+        ElMessage.error('保存失败')
+      }
+    }
+  }
+
+  async function initPage() {
     if (window.qt) {
       const qtDataJSON = await window.bridge.getWindowParam('drTructureDlg')
       // 出来的时候做了限制，肯定是一个json
@@ -144,8 +275,6 @@
       // } else {
       //   dataList.value = []
       // }
-      // 这里直接给数组
-      dataList.value = drlInfoex_qt.value
     } else {
       layerCount.value = 8
       if (layerCount.value > 0) {
@@ -411,8 +540,21 @@
       ]
     }
 
-    // tableData.value
     tableData.value = await (async () => {
+      // 这里直接给数组
+      if (window.qt) {
+        loading.value = true
+        const drillDataList = await getDrillDataList()
+        loading.value = false
+        if (drillDataList?.length > 0) {
+          dataList.value = drillDataList
+          console.log('drillDataList', drillDataList)
+          return _.cloneDeep(drillDataList)
+        }
+        // 只要走到下面 就取drlInfoex_qt 的值，一定是数组，已在QML处理好
+        dataList.value = drlInfoex_qt.value
+      }
+
       const newTableData = _.cloneDeep(dataList.value).map((item) => {
         const toolInfo = item.toolinfo
 
@@ -427,16 +569,17 @@
             return t
           }
           if (startNum === topLayerNumber.value || endNum === bottomLayerNumber.value) {
-            t = '盲孔'
+            t = '机械盲孔'
           }
           if (startNum !== topLayerNumber.value && endNum !== bottomLayerNumber.value) {
-            t = '埋孔'
+            t = '机械埋孔'
           }
           const maxFinishsizeData = _.maxBy(toolInfo, 'finishsize')
-          // 5.5mil 等于 5.5mil * 0.0254mm/mil = 0.1397mm
-          if (maxFinishsizeData['finishsize'] < 0.14) {
+          // 不能=0.15，必须是<0.15mm
+          if (maxFinishsizeData['finishsize'] < 0.15) {
             t = '激光孔'
           }
+
           return t
         })()
 
@@ -455,7 +598,7 @@
         })
 
         // 部件名
-        const partNumber = `L${startNum}-${endNum}`
+        const partNumber = `L${startNum}-L${endNum}`
 
         const newItem = {
           startNum,
@@ -487,6 +630,15 @@
 
       return newTableData
     })()
+  }
+
+  onMounted(async () => {
+    await initPage()
+  })
+
+  defineExpose({
+    initPage,
+    writeDrillData,
   })
 </script>
 

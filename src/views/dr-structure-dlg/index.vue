@@ -1,18 +1,19 @@
 <template>
   <div class="dr-structure-container w-full h-full">
-    <el-tabs v-model="activeName" class="laser-hole-tabs">
+    <TableDrStructure ref="tableDrStructureRef" />
+    <!-- <el-tabs v-model="activeName" class="laser-hole-tabs">
       <el-tab-pane label="结构表" name="first">
         <TableDrStructure />
       </el-tab-pane>
       <el-tab-pane label="激光孔统计" name="second">
         <TableLaserHole />
       </el-tab-pane>
-    </el-tabs>
+    </el-tabs> -->
 
     <div class="footer">
       <div class="btn-group">
         <!-- <el-button size="small" @click="onClose">关闭</el-button> -->
-        <el-button class="btn" size="small" type="primary" @click="onConfirm">确认</el-button>
+        <el-button :loading="confirmLoading" class="btn" size="small" type="primary" @click="onConfirm">确认</el-button>
       </div>
     </div>
   </div>
@@ -25,15 +26,24 @@
 </script>
 
 <script setup>
+  import _ from 'lodash'
   import { ref } from 'vue'
 
+  // import $DrStructureDlg from '@/api/modules/dr-structure-dlg'
   import TableDrStructure from '@/views/dr-structure-dlg/components/TableDrStructure.vue'
-  import TableLaserHole from '@/views/dr-structure-dlg/components/TableLaserHole.vue'
 
-  const activeName = ref('first')
+  // import TableLaserHole from '@/views/dr-structure-dlg/components/TableLaserHole.vue'
 
-  const onConfirm = () => {
-    console.log('save')
+  // const activeName = ref('first')
+
+  const tableDrStructureRef = ref()
+
+  const confirmLoading = ref(false)
+  const onConfirm = async () => {
+    confirmLoading.value = true
+    const msgStr = await tableDrStructureRef.value?.writeDrillData()
+    if (typeof msgStr !== 'string') await tableDrStructureRef.value?.initPage()
+    confirmLoading.value = false
   }
 </script>
 

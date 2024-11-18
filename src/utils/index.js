@@ -20,6 +20,12 @@ export function parseURLParams(url) {
   return paramsObject
 }
 
+export function formatServerParamStr(serverParamStr){
+  if (!serverParamStr || typeof serverParamStr !== 'string') return {}
+  const newStr = decodeURIComponent(serverParamStr)
+  return isJSON(newStr)? JSON.parse(newStr) : parseURLParams(newStr)
+}
+
 export function isJSON(str) {
   try {
     JSON.parse(str)
