@@ -10,6 +10,9 @@
         <el-tab-pane label="光板" name="tab2">
           <TableDataSource ref="tableDataSource2Ref" :data="boardDataList" :table-height="tableHeight" :table-width="dialogConentWidth" />
         </el-tab-pane>
+        <el-tab-pane label="基板" name="tab5">
+          <TableDataSource ref="tableDataSource5Ref" :data="boardDataList" :table-height="tableHeight" :table-width="dialogConentWidth" />
+        </el-tab-pane>
         <el-tab-pane label="PP" name="tab3">
           <TableDataSource ref="tableDataSource3Ref" :data="ppDataList" :table-height="tableHeight" :table-width="dialogConentWidth" />
         </el-tab-pane>
@@ -41,6 +44,7 @@
   const tableDataSource2Ref = ref()
   const tableDataSource3Ref = ref()
   const tableDataSource4Ref = ref()
+  const tableDataSource5Ref = ref()
 
   const dialogVisible = ref(false)
   const dialogConentWidth = ref(400)
@@ -117,7 +121,7 @@
 
         // 规格全部写含铜 ，理论厚度也是含铜的厚度
         tDataItem = tableDataSource1Ref.value.getCurrentRowData()
-        item.materialType = 'core'
+        item.materialType = 'Core'
         item.materialSpecifications = '含铜'
         item.materialThickness = tDataItem['含铜厚度']
         // item.residual_copper_rate = `${tDataItem['底层铜箔']}/${tDataItem['顶层铜箔']}`
@@ -179,7 +183,28 @@
         item.residual_copper_rate = '70'
         item.materialFinalThickness = `${tDataItem['厚度_mm']}`
       }
-      item.label = tDataItem.label
+
+      if (activeName.value === 'tab5') {
+        // label: '0.1 光版厚度'
+        // 光板厚度: 0.1
+        // 厚度: 0.1
+        // 序号: 1
+        tDataItem = tableDataSource5Ref.value.getCurrentRowData()
+        item.materialType = 'Substrate'
+        item.materialSpecifications = '基板'
+        item.materialThickness = tDataItem['光板厚度']
+        item.residual_copper_rate = '-'
+        item.materialFinalThickness = tDataItem['光板厚度']
+      }
+      const p = {
+        tab1: '芯板',
+        tab2: '光板',
+        tab3: 'PP',
+        tab4: '铜箔',
+        tab5: '基板',
+      }
+      // item.label = tDataItem.label
+      item.label = p[activeName.value]
       console.log('addItem', item)
 
       return item

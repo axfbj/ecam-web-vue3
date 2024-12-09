@@ -34,7 +34,7 @@ export async function saveFileByBase64(data, filePath) {
   const rootPath = await getAppDir()
   const fullPath = `${rootPath}/${filePath}`
   const result = await window.bridge.saveFileByBase64(fullPath, data)
-  return Boolean(result)
+  return { success: Boolean(result), fullPath }
 }
 
 export function base64ToUint8Array(base64) {

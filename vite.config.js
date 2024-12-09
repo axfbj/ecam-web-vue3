@@ -9,7 +9,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   server: {
-    open: 'www/dr-structure-dlg/index.html', // 修改启动时打开的路径
+    open: 'www/stack-impedance/index.html', // 修改启动时打开的路径
   },
   plugins: [
     vue(),
@@ -37,6 +37,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'www/stack-impedance/index.html'),
         drStructure: resolve(__dirname, 'www/dr-structure-dlg/index.html'),
+        exportEcamExcel: resolve(__dirname, 'www/export-ecam-excel/index.html'),
       },
     },
   },

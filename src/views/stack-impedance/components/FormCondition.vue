@@ -23,8 +23,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="submitForm(formRef)">加载叠构抗阻</el-button>
-            <el-button @click="saveForm(formRef)">保存叠构抗阻</el-button>
-            <!-- <el-button @click="onExportExcel2">导出</el-button> -->
+            <!-- <el-button @click="saveForm(formRef)">保存叠构抗阻</el-button> -->
           </el-form-item>
         </div>
         <!-- <div>
@@ -41,10 +40,7 @@
 </template>
 
 <script setup>
-  import ExcelJS from 'exceljs'
   import { computed, ref } from 'vue'
-
-  import { base64ToUint8Array, readFileBase64, saveFileByBase64, uint8ArrayToBase64 } from '@/utils/QTMethods'
 
   const emit = defineEmits(['input-layer', 'loading-scheme', 'save-scheme'])
 
@@ -114,48 +110,11 @@
     emit('input-layer')
   }
 
-  const saveForm = (formEl) => {
-    if (!formEl) return
-    // formEl.resetFields()
-    emit('save-scheme')
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  const onExportExcel2 = async () => {
-    if (window.qt) {
-      var readFilePath = 'localStorageFiles/test.xlsx'
-      var saveFilePath = 'localStorageFiles/copy_test.xlsx'
-      const base64Data = await readFileBase64(readFilePath)
-      const f_uint8Array = base64ToUint8Array(base64Data) // 将返回的二进制数据转换为 Uint8Array
-      console.log('f_uint8Array', f_uint8Array)
-      const workbook = new ExcelJS.Workbook()
-      await workbook.xlsx.load(f_uint8Array)
-
-      const worksheet = workbook.getWorksheet(1) // Assuming you want to work with the first sheet
-
-      // Define your replacement object with actual placeholders
-      const replacements = {
-        $a1: 'test',
-        $a2: 'abc',
-      }
-
-      // Iterate through all cells in the worksheet and apply replacements
-      worksheet.eachRow({ includeEmpty: true }, function (row) {
-        row.eachCell({ includeEmpty: true }, function (cell) {
-          if (typeof cell.value === 'string' && replacements[cell.value]) {
-            cell.value = replacements[cell.value]
-          }
-        })
-      })
-      // Save the modified Excel file
-      const modifiedData = await workbook.xlsx.writeBuffer()
-      const uint8ArrayData = new Uint8Array(modifiedData) // 转换为 Uint8Array
-      const base64Data2 = uint8ArrayToBase64(uint8ArrayData) // 转换为 Base64 字符串
-
-      const r = await saveFileByBase64(base64Data2, saveFilePath)
-      console.log(r)
-    }
-  }
+  // const saveForm = (formEl) => {
+  //   if (!formEl) return
+  //   // formEl.resetFields()
+  //   emit('save-scheme')
+  // }
 </script>
 
 <style lang="scss" scoped>

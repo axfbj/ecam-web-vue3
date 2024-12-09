@@ -15,7 +15,7 @@
           <ObjRect :material-type="row.materialType" :text="row.label" />
         </template>
         <template #edit_rate_input="{ row }">
-          <div v-if="row.materialType === 'core'" class="edit-rate">
+          <div v-if="row.materialType === 'Core'" class="edit-rate">
             {{ row.residual_copper_rate_t }}/{{ row.residual_copper_rate_b }}
             <div class="edit-rate-input" style="width: 110px; height: 56px; padding: 2px">
               <div class="flex justify-start" style="margin-bottom: 2px">
@@ -140,10 +140,11 @@
     otherNotes: '',
   }
   const materialTypeList = {
-    core: '芯板',
+    Core: '芯板',
     bare_core: '光板',
     Prepreg: 'PP',
     Copper: '铜箔',
+    Substrate: '基板',
   }
   const currentIndex = ref(-1)
   const gridEvents = {
@@ -209,7 +210,7 @@
   const layerCount = computed(() => {
     let layer_count = 0
     tableData.value.forEach((item) => {
-      if (item.materialType === 'core') {
+      if (item.materialType === 'Core') {
         layer_count += 2
       }
       if (item.materialType === 'Copper') {
@@ -232,7 +233,7 @@
     const _tData = _.cloneDeep(tData)
     let flagNumber = 0
     return _tData.map((item) => {
-      if (item.materialType === 'core') {
+      if (item.materialType === 'Core') {
         item.layer = `L${flagNumber + 1}/L${flagNumber + 2}`
         flagNumber += 2
       } else if (item.materialType === 'Copper') {
@@ -247,9 +248,9 @@
 
   const calcPPLaminationThickness = (_tData) => {
     // 找到最上面 芯板版的索引
-    const fristCoreIndex = _.findIndex(_tData, (_item) => _item.materialType === 'core')
+    const fristCoreIndex = _.findIndex(_tData, (_item) => _item.materialType === 'Core')
     // 找到最后面 芯板的索引
-    const lastCoreIndex = _.findLastIndex(_tData, (_item) => _item.materialType === 'core')
+    const lastCoreIndex = _.findLastIndex(_tData, (_item) => _item.materialType === 'Core')
 
     return _tData.map((item, index) => {
       // pp压合厚度计算
@@ -261,7 +262,7 @@
         item.materialFinalThickness = item.materialThickness
         if ((fristCoreIndex > -1 && index < fristCoreIndex) || (index > fristCoreIndex && index < lastCoreIndex)) {
           nextItem = _tData[nextIndex]
-          if (nextItem.materialType === 'core') {
+          if (nextItem.materialType === 'Core') {
             var rate3 = Number(nextItem.residual_copper_rate_t) / 100
             item.materialFinalThickness = Number(item.materialFinalThickness) - (1 - rate3) * Number(nextItem.residual_copper_rate_number_t)
             item.materialFinalThickness = Number(item.materialFinalThickness.toFixed(4))
@@ -274,7 +275,7 @@
 
         if ((lastCoreIndex > -1 && index > lastCoreIndex) || (index > fristCoreIndex && index < lastCoreIndex)) {
           prvItem = _tData[prvIndex]
-          if (prvItem.materialType === 'core') {
+          if (prvItem.materialType === 'Core') {
             var rate1 = Number(prvItem.residual_copper_rate_b) / 100
             item.materialFinalThickness = Number(item.materialFinalThickness) - (1 - rate1) * Number(prvItem.residual_copper_rate_number_b)
             item.materialFinalThickness = Number(item.materialFinalThickness.toFixed(4))
@@ -322,14 +323,16 @@
     cellClassName: cellClassName,
     columns: [
       // { type: 'seq', width: 70 },
-      { field: 'darg', title: '', align: 'center', minWidth: 40, slots: { default: 'drag_icon' } },
-      { field: 'layer', title: '层别', minWidth: 60 },
-      { field: 'obj', title: '物件', minWidth: 160, align: 'center', slots: { default: 'obj_rect' } },
-      { field: 'materialType', title: '类型', minWidth: 80, slots: { default: 'type_format' } },
-      { field: 'materialSpecifications', title: '规格', minWidth: 60 },
-      { field: 'materialThickness', title: '理论厚度', minWidth: 80 },
-      { field: 'residual_copper_rate', title: '残铜率(%)', minWidth: 80, editRender: {}, slots: { edit: 'edit_rate_input' } },
-      { field: 'materialFinalThickness', title: '压合厚度', minWidth: 80 },
+      { field: 'darg', title: '组件', align: 'center', width: 55, slots: { default: 'drag_icon' } },
+      { field: 'layer', title: '铜序号', width: 60 },
+      { field: 'signalLayerName', title: '信号层别', width: 70 },
+      { field: 'residual_copper_rate', title: '残铜(%)', width: 90, editRender: {}, slots: { edit: 'edit_rate_input' } },
+      { field: 'obj', title: '物件', width: 154, align: 'center', slots: { default: 'obj_rect' } },
+      { field: 'materialType', title: '类型', width: 60, slots: { default: 'type_format' } },
+      { field: 'materialSpecifications', title: '规格', width: 60 },
+      { field: 'materialThickness', title: '理论厚度', width: 80 },
+
+      { field: 'materialFinalThickness', title: '压合厚度', width: 80 },
     ],
     data: tableData,
   })
@@ -476,7 +479,7 @@
       delete laminatedStructureTmp[`layer_${props.layer}`][`plan_${props.structuralPlan}_p1_${props.thickness}_p2${props.innerLayerCopperThickness}`]
     }
 
-    if (Object.keys(laminatedStructureTmp[`layer_${props.layer}`]).length === 0) delete laminatedStructureTmp[`layer_${props.layer}`]
+    if (_.isPlainObject(`layer_${props.layer}`) && _.isEmpty(`layer_${props.layer}`)) delete laminatedStructureTmp[`layer_${props.layer}`]
 
     if (window.qt) {
       await saveFile(laminatedStructureTmp, stackImpedanceJsonPath)
@@ -488,13 +491,14 @@
 
   const initFormatTableData = (tableData) => {
     return tableData.map((item) => {
+      // 这里signalLayerName 现在又不能占用了，可能会同步过来需要正常显示，保存功能删掉了
       if (!isJSON(item.signalLayerName)) return item
       const signalLayerName = JSON.parse(item.signalLayerName)
       item.label = signalLayerName.label
       item.layer = signalLayerName.layer
       item.residual_copper_rate_flag = signalLayerName.residual_copper_rate_flag
       item.residual_copper_rate = signalLayerName.residual_copper_rate
-      if (item.materialType === 'core') {
+      if (item.materialType === 'Core') {
         const residual_copper_rate_flag = (item.residual_copper_rate_flag || '').split('/')
         const residual_copper_rate = (item.residual_copper_rate || '').split('/')
 
@@ -579,6 +583,14 @@
     loading.value = true
     await loadEcamData()
     if (tableData.value.length === 0) await loadAIData()
+
+    // 临时转为基板
+    tableData.value = tableData.value.map((item) => {
+      if (item.materialType === 'Core') {
+        item.materialType = 'Substrate'
+      }
+      return item
+    })
     updateTableData(tableData.value)
     loading.value = false
   }
@@ -587,7 +599,7 @@
     tableData.value = initFormatTableData(_tableData)
     gridRef.value.reloadData([])
     nextTick(() => {
-      gridRef.value.reloadData(tableData.value)
+      gridRef.value.reloadData(tableDataFormt(tableData.value))
     })
   }
 

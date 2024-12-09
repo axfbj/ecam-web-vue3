@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="materialType === 'core'" class="obj-rect-1">
+    <div v-if="materialType === 'Core'" class="obj-rect-1">
       <div class="type1-rect-1"></div>
       <div class="type1-rect-2">{{ text }}</div>
       <div class="type1-rect-3"></div>
@@ -13,6 +13,9 @@
     </div>
     <div v-else-if="materialType === 'Copper'" class="obj-rect-4">
       <div></div>
+    </div>
+    <div v-else-if="materialType === 'Substrate'" class="obj-rect-2">
+      <div>{{ text }}</div>
     </div>
   </div>
 </template>
