@@ -1,10 +1,33 @@
 <template>
   <!-- <div v-loading="loading" class="export-ecam-excel" element-loading-text="正在导出Excel..."> -->
   <div class="export-ecam-excel">
+    <!-- <div>
+      <h3 style="font-weight: 800; font-size: 18px">导出Excel</h3>
+    </div> -->
     <!-- <el-button @click="onExportExcel">导出Excel</el-button> -->
     <!-- <div class="text-info">
       {{ xlsxFilePath }}
     </div> -->
+    <el-form ref="ruleFormRef" style="width: 100%; padding: 10px" :model="ruleForm" status-icon label-width="60px">
+      <el-form-item label="文件名" prop="fileName">
+        <el-input v-model="ruleForm.fileName" disabled />
+      </el-form-item>
+      <el-form-item label="保存到" prop="saveDir">
+        <!-- <el-input v-model.number="ruleForm.saveDir" placeholder="" readonly /> -->
+        <el-input v-model="ruleForm.saveDir" disabled>
+          <template #append>
+            <!-- <el-button type="primary" :icon="FolderOpened" @click="onFolderOpened" /> -->
+            <el-button @click="onFolderOpened">
+              <el-icon class="el-icon"><FolderOpened :color="'#409EFF'" /></el-icon>
+            </el-button>
+          </template>
+        </el-input>
+      </el-form-item>
+      <div style="text-align: center">
+        <el-button @click="onOpen"> 导出后直接打开 </el-button>
+        <el-button type="primary" @click="onExport">导出</el-button>
+      </div>
+    </el-form>
   </div>
 </template>
 
@@ -16,17 +39,37 @@
 
 <script setup>
   import ExcelJS from 'exceljs'
-  import { onMounted, ref } from 'vue'
+  import { onMounted, ref, reactive } from 'vue'
   import { dateFormat } from '@/utils/dateTime'
 
-  import { base64ToUint8Array, readFileBase64, saveFileByBase64, uint8ArrayToBase64 } from '@/utils/QTMethods'
+  import {
+    base64ToUint8Array,
+    readFileBase64,
+    saveFileByBase64,
+    uint8ArrayToBase64,
+    getAppDir,
+    getExistingDirectory,
+    openLocalFile,
+  } from '@/utils/QTMethods'
 
   import { ecamResultData } from './data.js'
 
+  import { FolderOpened } from '@element-plus/icons-vue'
+  import { ElMessage } from 'element-plus'
+
+  const ruleForm = reactive({
+    fileName: '',
+    saveDir: '',
+  })
+
   const xlsxFilePath = ref('')
-  const loading = ref(true)
+  const loading = ref(false)
 
   const qtData = ref({})
+
+  // const isQt = computed(() => {
+  //   return window.qt && window.bridge
+  // })
 
   // eslint-disable-next-line no-unused-vars
   const onExportExcel2 = async () => {
@@ -65,7 +108,7 @@
     }
   }
   // eslint-disable-next-line no-unused-vars
-  const generateExcel = async (data, headerText) => {
+  const generateExcel = async (data, headerText, isOpenFile) => {
     // 创建一个新的工作簿
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Sheet1')
@@ -134,17 +177,25 @@
     const buffer = await workbook.xlsx.writeBuffer()
     if (window.qt) {
       // var readFilePath = 'localStorageFiles/test.xlsx'
-      var saveFilePath = `localStorageFiles/camExcelFiles/${fileName}`
+      // var saveFilePath = `localStorageFiles/camExcelFiles/${fileName}`
+      var saveFileFullPath = ruleForm.saveDir + '/' + ruleForm.fileName
 
       // Save the modified Excel file
       // const modifiedData = await workbook.xlsx.writeBuffer()
       const uint8ArrayData = new Uint8Array(buffer) // 转换为 Uint8Array
       const base64Data2 = uint8ArrayToBase64(uint8ArrayData) // 转换为 Base64 字符串
 
-      const result = await saveFileByBase64(base64Data2, saveFilePath)
+      const result = await saveFileByBase64(base64Data2, saveFileFullPath)
       // console.log(r)
       loading.value = false
       xlsxFilePath.value = `文件位置: ${result.fullPath}`
+
+      if (isOpenFile) {
+        await openLocalFile(saveFileFullPath)
+        ElMessage.success('导出成功,正在打开文件...')
+      } else {
+        ElMessage.success('导出成功')
+      }
     } else {
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
 
@@ -161,7 +212,7 @@
   }
 
   // eslint-disable-next-line no-unused-vars
-  const onExportExcel = async () => {
+  const onExportExcel = async (isOpenFile) => {
     const { headerTextArray, titleList, projectList } = qtData.value
     const jsonData = titleList
       .map((item, index) => {
@@ -198,7 +249,7 @@
       })
       .flat()
 
-    generateExcel(jsonData, headerTextArray)
+    generateExcel(jsonData, headerTextArray, isOpenFile)
   }
 
   const initPage = async () => {
@@ -206,15 +257,36 @@
       const qtDataJSON = await window.bridge.getWindowParam('exportEcamExcel')
       qtData.value = JSON.parse(qtDataJSON)
       console.log('qtData', qtData.value)
+
+      const appDir = await getAppDir()
+      ruleForm.saveDir = `${appDir}/localStorageFiles/camExcelFiles`
     } else {
       qtData.value = ecamResultData
     }
+
+    ruleForm.fileName = `ecam数据${dateFormat(new Date(), 'YYYY_MM_DD HH_mm_ss')}.xlsx`
     // onExportExcel()
+  }
+
+  const onOpen = () => {
+    onExportExcel(true)
+  }
+
+  const onExport = () => {
+    onExportExcel()
+  }
+
+  const onFolderOpened = async () => {
+    if (window.qt) {
+      const dir = await getExistingDirectory(ruleForm.saveDir)
+      if (dir) {
+        ruleForm.saveDir = dir
+      }
+    }
   }
 
   onMounted(() => {
     initPage()
-    // onExportExcel()
   })
 </script>
 
@@ -222,6 +294,10 @@
   .export-ecam-excel {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     /* background: red; */
   }
   .text-info {

@@ -12,7 +12,7 @@ export default {
     return http.post('/emake/loadAiCalleniaInfo', data)
   },
   /**
-   * 获取ecam阻抗
+   * 获取ecam叠层
    * @param {Object} data
    * @param {string} data.fileId 文件id
    * @param {string} data.tokenId 企业id

@@ -5,6 +5,15 @@ import { isJSON } from '.'
 export async function getAppDir() {
   return await window.bridge.getAppDir()
 }
+
+export async function getExistingDirectory(defulatPath) {
+  return await window.bridge.getExistingDirectory(defulatPath)
+}
+
+export async function openLocalFile(fileFullPath) {
+  return await window.bridge.openLocalFile(fileFullPath)
+}
+
 export async function saveFile(data, filePath) {
   if (!window.qt) return
   const rootPath = await getAppDir()
@@ -29,10 +38,10 @@ export async function readFileBase64(filePath) {
   return dataStr
 }
 
-export async function saveFileByBase64(data, filePath) {
+export async function saveFileByBase64(data, fullPath) {
   if (!window.qt) return
-  const rootPath = await getAppDir()
-  const fullPath = `${rootPath}/${filePath}`
+  // const rootPath = await getAppDir()
+  // const fullPath = `${rootPath}/${filePath}`
   const result = await window.bridge.saveFileByBase64(fullPath, data)
   return { success: Boolean(result), fullPath }
 }

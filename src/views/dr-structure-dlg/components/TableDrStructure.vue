@@ -221,9 +221,9 @@
     const countTotal6 = _.size(_.filter(saveDataO, (item) => item['drillType'].includes('激光孔')))
 
     let msg = ''
-    if (countTotal1 > 1) msg += '通孔最多只能有一个;<br/>'
+    if (countTotal1 > 1) msg += '通孔最多只能有1个;<br/>'
     if (countTotal2 > 2) msg += '控深孔最多只能有两个;<br/>'
-    if (countTotal3 > 2) msg += '背钻孔最多只能有两个;<br/>'
+    if (countTotal3 > 8) msg += '背钻孔最多只能有8个;<br/>'
     if (countTotal4 > 8) msg += '盲孔最多只能有8个;<br/>'
     if (countTotal5 > 8) msg += '埋孔最多只能有8个;<br/>'
     if (countTotal6 > 16) msg += '激光孔最多只能有16个;<br/>'

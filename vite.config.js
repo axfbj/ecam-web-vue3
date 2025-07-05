@@ -9,7 +9,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   server: {
-    open: 'www/stack-impedance/index.html', // 修改启动时打开的路径
+    // open: 'www/stack-impedance/index.html', // 修改启动时打开的路径
+    open: 'www/dr-structure-dlg/index.html', // 修改启动时打开的路径
   },
   plugins: [
     vue(),
